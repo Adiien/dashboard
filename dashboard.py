@@ -113,25 +113,43 @@ st.pyplot(fig_bot)
 
 st.markdown("---")
 
-# 7. VISUALISASI 3: TREN VOLUME TRANSAKSI BULANAN
+# 7. VISUALISASI 3: TREN VOLUME TRANSAKSI BULANAN (ROBUST & AMAN)
 st.subheader("📈 Tren Volume Transaksi Bulanan")
 
-main_df['order_month_year'] = pd.to_datetime(main_df['order_purchase_timestamp']).dt.to_period('M').astype(str)
-monthly_orders = main_df.groupby('order_month_year')['order_id'].nunique().reset_index()
+# Pastikan kolom tanggal bertipe datetime
+df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
 
-fig2, ax2 = plt.subplots(figsize=(12, 5))
-ax2.plot(
-    monthly_orders['order_month_year'], 
-    monthly_orders['order_id'], 
-    marker='o', 
-    color='b', 
-    linewidth=2
-)
-plt.xticks(rotation=45)
-ax2.set_title("Tren Jumlah Pesanan Bulanan", fontsize=14, fontweight='bold')
-ax2.set_xlabel("Bulan-Tahun", fontsize=12)
-ax2.set_ylabel("Jumlah Pesanan", fontsize=12)
-st.pyplot(fig2)
+# Kita buat salinan dataframe untuk tren bulanan (opsional: bisa menggunakan df keseluruhan 
+# atau main_df. Jika ingin tren tetap stabil menampilkan semua bulan meski di-filter, 
+# gunakan df. Jika ingin mengikuti filter tanggal sidebar, gunakan main_df tapi pastikan formatnya aman).
+# Di sini kita gunakan df agar tren bulanan utuh, atau main_df jika ingin mengikuti filter:
+trend_df = main_df.copy()
+
+# Ekstraksi bulan-tahun dengan aman menggunakan string formatting .dt.to_period('M') atau .dt.strftime('%Y-%m')
+trend_df['order_month_year'] = trend_df['order_purchase_timestamp'].dt.strftime('%Y-%m')
+monthly_orders = trend_df.groupby('order_month_year')['order_id'].nunique().reset_index()
+
+# Urutkan berdasarkan bulan
+monthly_orders = monthly_orders.sort_values('order_month_year')
+
+# Pengecekan jika data bulanan kosong setelah filter
+if monthly_orders.empty:
+    st.warning("⚠️ Tidak ada data transaksi yang tersedia pada rentang tanggal yang dipilih.")
+else:
+    fig2, ax2 = plt.subplots(figsize=(12, 5))
+    ax2.plot(
+        monthly_orders['order_month_year'], 
+        monthly_orders['order_id'], 
+        marker='o', 
+        color='#1f77b4', 
+        linewidth=2
+    )
+    plt.xticks(rotation=45)
+    ax2.set_title("Tren Jumlah Pesanan Bulanan", fontsize=14, fontweight='bold')
+    ax2.set_xlabel("Bulan-Tahun", fontsize=12)
+    ax2.set_ylabel("Jumlah Pesanan", fontsize=12)
+    ax2.grid(True, linestyle='--', alpha=0.6)
+    st.pyplot(fig2)
 
 # Footer
 st.markdown("---")

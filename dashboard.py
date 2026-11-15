@@ -103,25 +103,41 @@ ax_bot.set_xlabel("Total Pendapatan (BRL)", fontsize=12)
 ax_bot.set_ylabel("Kategori Produk", fontsize=12)
 st.pyplot(fig_bot)
 
-# 5. VISUALISASI 2: TREN VOLUME TRANSAKSI BULANAN
-st.subheader("📈 Tren Volume Transaksi Bulanan")
+# 2. SIDEBAR (FILTER RENTANG WAKTU ANTI-COLLAPSE)
+st.sidebar.header("Filter Data")
 
-main_df['order_month_year'] = main_df['order_purchase_timestamp'].dt.to_period('M').astype(str)
-monthly_orders = main_df.groupby('order_month_year')['order_id'].nunique().reset_index()
+min_date = pd.to_datetime(df['order_purchase_timestamp']).min().date()
+max_date = pd.to_datetime(df['order_purchase_timestamp']).max().date()
 
-fig2, ax2 = plt.subplots(figsize=(12, 5))
-ax2.plot(
-    monthly_orders['order_month_year'], 
-    monthly_orders['order_id'], 
-    marker='o', 
-    color='b', 
-    linewidth=2
+date_range = st.sidebar.date_input(
+    label="Rentang Waktu",
+    value=(min_date, max_date),
+    min_value=min_date,
+    max_value=max_date
 )
-plt.xticks(rotation=45)
-ax2.set_title("Tren Jumlah Pesanan Bulanan", fontsize=14, fontweight='bold')
-ax2.set_xlabel("Bulan-Tahun", fontsize=12)
-ax2.set_ylabel("Jumlah Pesanan", fontsize=12)
-st.pyplot(fig2)
+
+# Menangani berbagai format output dari date_input Streamlit
+if isinstance(date_range, (tuple, list)):
+    if len(date_range) == 2:
+        start_date, end_date = date_range
+    elif len(date_range) == 1:
+        start_date = date_range[0]
+        end_date = max_date
+    else:
+        start_date, end_date = min_date, max_date
+else:
+    start_date = date_range
+    end_date = max_date
+
+# PENGAMANAN: Jika tanggal awal dan akhir tidak sengaja sama (1 titik), 
+# kembalikan end_date ke max_date agar grafik tren tidak ciut
+if start_date == end_date:
+    end_date = max_date
+    st.sidebar.info("ℹ️ Menampilkan data penuh dari tanggal yang dipilih hingga akhir periode.")
+
+# Filter dataframe berdasarkan rentang tanggal yang aman
+main_df = df[(pd.to_datetime(df['order_purchase_timestamp']).dt.date >= start_date) & 
+             (pd.to_datetime(df['order_purchase_timestamp']).dt.date <= end_date)]
 
 # Footer catatan
 st.markdown("---")

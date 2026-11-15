@@ -20,22 +20,30 @@ def load_data():
 
 df = load_data()
 
-# 2. SIDEBAR (FILTER RENTANG WAKTU)
+# 2. SIDEBAR (FILTER RENTANG WAKTU DENGAN VALIDASI)
 st.sidebar.header("Filter Data")
 
 min_date = df['order_purchase_timestamp'].min()
 max_date = df['order_purchase_timestamp'].max()
 
-start_date, end_date = st.sidebar.date_input(
-    label="Rentang Waktu",
-    min_value=min_date,
-    max_value=max_date,
-    value=[min_date, max_date]
-)
+try:
+    start_date, end_date = st.sidebar.date_input(
+        label="Rentang Waktu",
+        min_value=min_date,
+        max_value=max_date,
+        value=[min_date, max_date]
+    )
+except ValueError:
+    st.sidebar.error("Silakan masukkan rentang tanggal awal dan akhir dengan lengkap!")
+    st.stop()
 
-# Filter dataframe berdasarkan tanggal di sidebar
-main_df = df[(df['order_purchase_timestamp'] >= pd.to_datetime(start_date)) & 
-             (df['order_purchase_timestamp'] <= pd.to_datetime(end_date))]
+# Memastikan filter berjalan hanya jika rentang tanggal lengkap
+if len(start_date) == 2 or isinstance(start_date, tuple) or (start_date and end_date):
+    main_df = df[(df['order_purchase_timestamp'] >= pd.to_datetime(start_date)) & 
+                 (df['order_purchase_timestamp'] <= pd.to_datetime(end_date))]
+else:
+    st.warning("Mohon pilih tanggal awal dan tanggal akhir secara lengkap.")
+    main_df = df.copy()
 
 # 3. KONTROL UTAMA DASHBOARD
 st.title("📊 Dashboard Analisis E-Commerce Public Dataset")
@@ -56,7 +64,7 @@ with col3:
 
 st.markdown("---")
 
-# 4. VISUALISASI 1: TOP 10 KATEGORI PRODUK DENGAN PENDAPATAN TERTINGGI
+# VISUALISASI 1: TOP 10 KATEGORI PRODUK (Warna Seragam)
 st.subheader("🏆 Top 10 Kategori Produk dengan Pendapatan Tertinggi")
 
 product_revenue = main_df.groupby('product_category_name_english')['price'].sum().reset_index()
@@ -67,7 +75,7 @@ sns.barplot(
     x='price', 
     y='product_category_name_english', 
     data=product_revenue, 
-    palette='viridis', 
+    color='#1f77b4',  # Menggunakan warna seragam (solid blue)
     ax=ax
 )
 ax.set_title("Top 10 Kategori Produk Berdasarkan Pendapatan", fontsize=14, fontweight='bold')

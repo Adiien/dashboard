@@ -35,10 +35,10 @@ date_range = st.sidebar.date_input(
     max_value=max_date
 )
 
-# Validasi input rentang tanggal
 if isinstance(date_range, tuple) and len(date_range) == 2:
     start_date, end_date = date_range
 else:
+    st.sidebar.warning("⚠️ Mohon pilih tanggal awal dan tanggal akhir secara lengkap untuk menampilkan data spesifik.")
     start_date = min_date
     end_date = max_date
 
@@ -65,24 +65,52 @@ with col3:
 
 st.markdown("---")
 
-# VISUALISASI 1: TOP 10 KATEGORI PRODUK (Warna Seragam)
+# VISUALISASI 1A: TOP 10 KATEGORI PRODUK TERTINGGI (Warna Seragam)
 st.subheader("🏆 Top 10 Kategori Produk dengan Pendapatan Tertinggi")
 
 product_revenue = main_df.groupby('product_category_name_english')['price'].sum().reset_index()
-product_revenue = product_revenue.sort_values(by='price', ascending=False).head(10)
+product_revenue_sorted = product_revenue.sort_values(by='price', ascending=False)
+
+top_10 = product_revenue_sorted.head(10)
+bottom_10 = product_revenue_sorted.tail(10).sort_values(by='price', ascending=True)
 
 fig, ax = plt.subplots(figsize=(10, 5))
 sns.barplot(
     x='price', 
     y='product_category_name_english', 
-    data=product_revenue, 
-    color='#1f77b4',  # Menggunakan warna seragam (solid blue)
+    data=top_10, 
+    color='#1f77b4',  
     ax=ax
 )
-ax.set_title("Top 10 Kategori Produk Berdasarkan Pendapatan", fontsize=14, fontweight='bold')
+ax.set_title("10 Kategori Produk dengan Pendapatan Tertinggi", fontsize=14, fontweight='bold')
 ax.set_xlabel("Total Pendapatan (BRL)", fontsize=12)
 ax.set_ylabel("Kategori Produk", fontsize=12)
 st.pyplot(fig)
+
+# VISUALISASI 1B: 10 KATEGORI PRODUK TERENDAH (Sesuai Catatan Reviewer)
+st.subheader("📉 10 Kategori Produk dengan Pendapatan Terendah")
+
+fig_bot, ax_bot = plt.subplots(figsize=(10, 5))
+sns.barplot(
+    x='price', 
+    y='product_category_name_english', 
+    data=bottom_10, 
+    color='#ff7f0e',  # Warna berbeda tipis/seragam untuk pembeda
+    ax_bot=ax_bot if 'ax_bot' in locals() else plt.gca()
+)
+# Perbaikan pemanggilan ax agar aman:
+fig_bot, ax_bot = plt.subplots(figsize=(10, 5))
+sns.barplot(
+    x='price', 
+    y='product_category_name_english', 
+    data=bottom_10, 
+    color='#ff7f0e', 
+    ax=ax_bot
+)
+ax_bot.set_title("10 Kategori Produk dengan Pendapatan Terendah", fontsize=14, fontweight='bold')
+ax_bot.set_xlabel("Total Pendapatan (BRL)", fontsize=12)
+ax_bot.set_ylabel("Kategori Produk", fontsize=12)
+st.pyplot(fig_bot)
 
 # 5. VISUALISASI 2: TREN VOLUME TRANSAKSI BULANAN
 st.subheader("📈 Tren Volume Transaksi Bulanan")

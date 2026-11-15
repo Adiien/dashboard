@@ -103,17 +103,19 @@ ax_bot.set_xlabel("Total Pendapatan (BRL)", fontsize=12)
 ax_bot.set_ylabel("Kategori Produk", fontsize=12)
 st.pyplot(fig_bot)
 
-# 2. SIDEBAR (FILTER RENTANG WAKTU ANTI-COLLAPSE)
+# 2. SIDEBAR (FILTER RENTANG WAKTU DENGAN KEY UNIK)
 st.sidebar.header("Filter Data")
 
 min_date = pd.to_datetime(df['order_purchase_timestamp']).min().date()
 max_date = pd.to_datetime(df['order_purchase_timestamp']).max().date()
 
+# Tambahkan parameter key di sini agar tidak duplikat
 date_range = st.sidebar.date_input(
     label="Rentang Waktu",
     value=(min_date, max_date),
     min_value=min_date,
-    max_value=max_date
+    max_value=max_date,
+    key="date_range_input" 
 )
 
 # Menangani berbagai format output dari date_input Streamlit
@@ -129,8 +131,7 @@ else:
     start_date = date_range
     end_date = max_date
 
-# PENGAMANAN: Jika tanggal awal dan akhir tidak sengaja sama (1 titik), 
-# kembalikan end_date ke max_date agar grafik tren tidak ciut
+# PENGAMANAN: Jika tanggal awal dan akhir tidak sengaja sama (1 titik)
 if start_date == end_date:
     end_date = max_date
     st.sidebar.info("ℹ️ Menampilkan data penuh dari tanggal yang dipilih hingga akhir periode.")

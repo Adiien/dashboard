@@ -20,36 +20,31 @@ def load_data():
 
 df = load_data()
 
-# 2. SIDEBAR (FILTER RENTANG WAKTU YANG AMAN)
+# 2. SIDEBAR (FILTER RENTANG WAKTU YANG AMAN & FULL RANGE)
 st.sidebar.header("Filter Data")
 
-min_date = df['order_purchase_timestamp'].min()
-max_date = df['order_purchase_timestamp'].max()
+# Mengambil nilai minimum dan maksimum dari kolom tanggal (dikonversi ke date)
+min_date = df['order_purchase_timestamp'].min().date()
+max_date = df['order_purchase_timestamp'].max().date()
 
-try:
-    # Memastikan date_input mengembalikan rentang (start dan end)
-    date_value = st.sidebar.date_input(
-        label="Rentang Waktu",
-        min_value=min_date,
-        max_value=max_date,
-        value=[min_date, max_date]
-    )
-    
-    # Validasi apakah user memilih lengkap (start dan end date)
-    if isinstance(date_value, (list, tuple)) and len(date_value) == 2:
-        start_date, end_date = date_value
-    else:
-        start_date = min_date
-        end_date = max_date
-        st.sidebar.warning("Mohon pilih tanggal awal dan akhir secara lengkap.")
+# Membuat widget date_input dengan rentang default dari awal hingga akhir data
+date_range = st.sidebar.date_input(
+    label="Rentang Waktu",
+    value=(min_date, max_date),
+    min_value=min_date,
+    max_value=max_date
+)
 
-except Exception as e:
+# Validasi input rentang tanggal
+if isinstance(date_range, tuple) and len(date_range) == 2:
+    start_date, end_date = date_range
+else:
     start_date = min_date
     end_date = max_date
 
-# Filter dataframe berdasarkan tanggal
-main_df = df[(df['order_purchase_timestamp'] >= pd.to_datetime(start_date)) & 
-             (df['order_purchase_timestamp'] <= pd.to_datetime(end_date))]
+# Filter dataframe berdasarkan rentang tanggal yang dipilih
+main_df = df[(df['order_purchase_timestamp'].dt.date >= start_date) & 
+             (df['order_purchase_timestamp'].dt.date <= end_date)]
 
 # 3. KONTROL UTAMA DASHBOARD
 st.title("📊 Dashboard Analisis E-Commerce Public Dataset")

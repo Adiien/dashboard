@@ -87,7 +87,7 @@ ax.set_xlabel("Total Pendapatan (BRL)", fontsize=12)
 ax.set_ylabel("Kategori Produk", fontsize=12)
 st.pyplot(fig)
 
-# VISUALISASI 1B: 10 KATEGORI PRODUK TERENDAH (Sesuai Catatan Reviewer)
+# VISUALISASI 1B: 10 KATEGORI PRODUK DENGAN PENDAPATAN TERENDAH
 st.subheader("📉 10 Kategori Produk dengan Pendapatan Terendah")
 
 fig_bot, ax_bot = plt.subplots(figsize=(10, 5))
@@ -95,17 +95,8 @@ sns.barplot(
     x='price', 
     y='product_category_name_english', 
     data=bottom_10, 
-    color='#ff7f0e',  # Warna berbeda tipis/seragam untuk pembeda
-    ax_bot=ax_bot if 'ax_bot' in locals() else plt.gca()
-)
-# Perbaikan pemanggilan ax agar aman:
-fig_bot, ax_bot = plt.subplots(figsize=(10, 5))
-sns.barplot(
-    x='price', 
-    y='product_category_name_english', 
-    data=bottom_10, 
-    color='#ff7f0e', 
-    ax=ax_bot
+    color='#ff7f0e',  # Warna seragam untuk pembeda
+    ax=ax_bot         # Menggunakan parameter 'ax', bukan 'ax_bot'
 )
 ax_bot.set_title("10 Kategori Produk dengan Pendapatan Terendah", fontsize=14, fontweight='bold')
 ax_bot.set_xlabel("Total Pendapatan (BRL)", fontsize=12)

@@ -80,38 +80,37 @@ top_10 = product_revenue_sorted.head(10)
 bottom_10 = product_revenue_sorted.tail(10).sort_values(by='price', ascending=True)
 
 # 5. VISUALISASI 1: TOP 10 KATEGORI PRODUK TERTINGGI
-st.subheader("🏆 Top 10 Kategori Produk dengan Pendapatan Tertinggi")
+st.subheader("📊 Perbandingan Kategori Produk (Tertinggi vs Terendah)")
 
-fig, ax = plt.subplots(figsize=(10, 5))
-sns.barplot(
-    x='price', 
-    y='product_category_name_english', 
-    data=top_10, 
-    color='#1f77b4', 
-    ax=ax
-)
-ax.set_title("10 Kategori Produk dengan Pendapatan Tertinggi", fontsize=14, fontweight='bold')
-ax.set_xlabel("Total Pendapatan (BRL)", fontsize=12)
-ax.set_ylabel("Kategori Produk", fontsize=12)
-st.pyplot(fig)
+col_a, col_b = st.columns(2)
 
-# 6. VISUALISASI 2: 10 KATEGORI PRODUK TERENDAH (Sesuai Catatan Reviewer)
-st.subheader("📉 10 Kategori Produk dengan Pendapatan Terendah")
+with col_a:
+    st.markdown("**Top 5 Kategori Tertinggi**")
+    fig_top, ax_top = plt.subplots(figsize=(7, 5))
+    sns.barplot(
+        x='price', 
+        y='product_category_name_english', 
+        data=top_5, 
+        color='#1f77b4', 
+        ax=ax_top
+    )
+    ax_top.set_xlabel("Total Pendapatan (BRL)")
+    ax_top.set_ylabel("Kategori Produk")
+    st.pyplot(fig_top)
 
-fig_bot, ax_bot = plt.subplots(figsize=(10, 5))
-sns.barplot(
-    x='price', 
-    y='product_category_name_english', 
-    data=bottom_10, 
-    color='#ff7f0e', 
-    ax=ax_bot
-)
-ax_bot.set_title("10 Kategori Produk dengan Pendapatan Terendah", fontsize=14, fontweight='bold')
-ax_bot.set_xlabel("Total Pendapatan (BRL)", fontsize=12)
-ax_bot.set_ylabel("Kategori Produk", fontsize=12)
-st.pyplot(fig_bot)
-
-st.markdown("---")
+with col_b:
+    st.markdown("**Bottom 5 Kategori Terendah**")
+    fig_bot, ax_bot = plt.subplots(figsize=(7, 5))
+    sns.barplot(
+        x='price', 
+        y='product_category_name_english', 
+        data=bottom_5, 
+        color='#ff7f0e', 
+        ax=ax_bot
+    )
+    ax_bot.set_xlabel("Total Pendapatan (BRL)")
+    ax_bot.set_ylabel("")
+    st.pyplot(fig_bot)
 
 # 7. VISUALISASI 3: TREN VOLUME TRANSAKSI BULANAN (ROBUST & AMAN)
 st.subheader("📈 Tren Volume Transaksi Bulanan")

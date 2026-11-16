@@ -19,11 +19,11 @@ def load_data():
 
 df = load_data()
 
-# 3. SIDEBAR (FILTER RENTANG WAKTU - HANYA SATU Kali)
+# 3. SIDEBAR (FILTER RENTANG WAKTU)
 st.sidebar.header("Filter Data")
 
 min_date = pd.to_datetime(df['order_purchase_timestamp']).min().date()
-max_date = pd.to_datetime(df['order_purchase_timestamp']).max().date()
+max_date = pd.to_datetime(df['order_purchase_timestamp'].max()).date()
 
 date_range = st.sidebar.date_input(
     label="Rentang Waktu",
@@ -33,7 +33,6 @@ date_range = st.sidebar.date_input(
     key="main_date_range_filter"
 )
 
-# Validasi agar rentang tanggal aman dan tidak 1 titik
 if isinstance(date_range, (tuple, list)):
     if len(date_range) == 2:
         start_date, end_date = date_range
@@ -54,7 +53,7 @@ if start_date == end_date:
 main_df = df[(pd.to_datetime(df['order_purchase_timestamp']).dt.date >= start_date) & 
              (pd.to_datetime(df['order_purchase_timestamp']).dt.date <= end_date)]
 
-# 4. HEADER & METRIK UTAMA DASHBOARD
+# 4. HEADER & METRIK UTAMA
 st.title("📊 Dashboard Analisis E-Commerce Public Dataset")
 st.markdown("Proyek Akhir Analisis Data - Visualisasi Kinerja Penjualan dan Tren Transaksi")
 
@@ -72,14 +71,16 @@ with col3:
 
 st.markdown("---")
 
-# Pengolahan data kategori produk
+# ==========================================
+# 5. DEFINISI VARIABEL TOP_5 DAN BOTTOM_5 (PENTING AGAR TIDAK NAMEERROR)
+# ==========================================
 product_revenue = main_df.groupby('product_category_name_english')['price'].sum().reset_index()
 product_revenue_sorted = product_revenue.sort_values(by='price', ascending=False)
 
-top_10 = product_revenue_sorted.head(10)
-bottom_10 = product_revenue_sorted.tail(10).sort_values(by='price', ascending=True)
+top_5 = product_revenue_sorted.head(5)
+bottom_5 = product_revenue_sorted.tail(5).sort_values(by='price', ascending=True)
 
-# 5. VISUALISASI 1: TOP 10 KATEGORI PRODUK TERTINGGI
+# 6. VISUALISASI BERSEBELAHAN (TOP 5 & BOTTOM 5)
 st.subheader("📊 Perbandingan Kategori Produk (Tertinggi vs Terendah)")
 
 col_a, col_b = st.columns(2)
@@ -90,7 +91,7 @@ with col_a:
     sns.barplot(
         x='price', 
         y='product_category_name_english', 
-        data=top_5, 
+        data=top_5,  # Variabel top_5 sudah didefinisikan di atas
         color='#1f77b4', 
         ax=ax_top
     )
@@ -104,7 +105,7 @@ with col_b:
     sns.barplot(
         x='price', 
         y='product_category_name_english', 
-        data=bottom_5, 
+        data=bottom_5,  # Variabel bottom_5 sudah didefinisikan di atas
         color='#ff7f0e', 
         ax=ax_bot
     )
@@ -112,37 +113,19 @@ with col_b:
     ax_bot.set_ylabel("")
     st.pyplot(fig_bot)
 
-# 7. VISUALISASI 3: TREN VOLUME TRANSAKSI BULANAN (ROBUST & AMAN)
+st.markdown("---")
+
+# 7. VISUALISASI TREN BULANAN
 st.subheader("📈 Tren Volume Transaksi Bulanan")
-
-# Pastikan kolom tanggal bertipe datetime
-df['order_purchase_timestamp'] = pd.to_datetime(df['order_purchase_timestamp'])
-
-# Kita buat salinan dataframe untuk tren bulanan (opsional: bisa menggunakan df keseluruhan 
-# atau main_df. Jika ingin tren tetap stabil menampilkan semua bulan meski di-filter, 
-# gunakan df. Jika ingin mengikuti filter tanggal sidebar, gunakan main_df tapi pastikan formatnya aman).
-# Di sini kita gunakan df agar tren bulanan utuh, atau main_df jika ingin mengikuti filter:
 trend_df = main_df.copy()
+trend_df['order_month_year'] = pd.to_datetime(trend_df['order_purchase_timestamp']).dt.strftime('%Y-%m')
+monthly_orders = trend_df.groupby('order_month_year')['order_id'].nunique().reset_index().sort_values('order_month_year')
 
-# Ekstraksi bulan-tahun dengan aman menggunakan string formatting .dt.to_period('M') atau .dt.strftime('%Y-%m')
-trend_df['order_month_year'] = trend_df['order_purchase_timestamp'].dt.strftime('%Y-%m')
-monthly_orders = trend_df.groupby('order_month_year')['order_id'].nunique().reset_index()
-
-# Urutkan berdasarkan bulan
-monthly_orders = monthly_orders.sort_values('order_month_year')
-
-# Pengecekan jika data bulanan kosong setelah filter
 if monthly_orders.empty:
-    st.warning("⚠️ Tidak ada data transaksi yang tersedia pada rentang tanggal yang dipilih.")
+    st.warning("⚠️ Tidak ada data transaksi pada rentang tanggal ini.")
 else:
     fig2, ax2 = plt.subplots(figsize=(12, 5))
-    ax2.plot(
-        monthly_orders['order_month_year'], 
-        monthly_orders['order_id'], 
-        marker='o', 
-        color='#1f77b4', 
-        linewidth=2
-    )
+    ax2.plot(monthly_orders['order_month_year'], monthly_orders['order_id'], marker='o', color='#1f77b4', linewidth=2)
     plt.xticks(rotation=45)
     ax2.set_title("Tren Jumlah Pesanan Bulanan", fontsize=14, fontweight='bold')
     ax2.set_xlabel("Bulan-Tahun", fontsize=12)
@@ -150,6 +133,5 @@ else:
     ax2.grid(True, linestyle='--', alpha=0.6)
     st.pyplot(fig2)
 
-# Footer
 st.markdown("---")
 st.caption("Dibuat untuk memenuhi kriteria Proyek Akhir Analisis Data.")
